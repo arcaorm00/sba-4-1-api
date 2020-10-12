@@ -35,8 +35,12 @@ class Training:
             validation_data = (data.x_test, data.y_test), 
             verbose=2
         )
-        loss, acc = model.evaluate(data.x_test, data, y_test, batch_size=batch_size, verbose=2)
-        print(f'Test Accuracy: {acc} / loss: {loss}')
+        loss, acc = model.evaluate(
+            data.x_test, 
+            data, y_test, 
+            batch_size=batch_size,
+            verbose=2)
+        print('Test Performance: accuracy: {acc} / loss: {loss}'.format(acc, loss))
 
 t = Training()
 t.run()
