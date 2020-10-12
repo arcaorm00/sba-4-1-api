@@ -10,11 +10,13 @@ class FoodDao:
     def select_foods(self):
         cur = self.cursor
         con = self.connector
+        rows = []
 
         try:
-            cur.execute('select * from food')
-            for row in cur:
-                print(f'price is: {str(row["price"])}')    
+            cur.execute('select * from food', )
+            rows = cur.fetchall()
+            for row in rows:
+                print(f'price is: {str(row["price"])}') 
             cur.close()
         except:
             print('Exception ...')
@@ -22,7 +24,8 @@ class FoodDao:
             if con is not None:
                 con.close()
 
-if __name__ == '__main__':
-    dao = FoodDao()
-    dao.select_foods()
+        return rows
+
+dao = FoodDao()
+dao.select_foods()
     
