@@ -1,7 +1,7 @@
 from com_sba_api.ext.db import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.dialects.mssql import DECIMAL, VARCHAR
+from sqlalchemy.dialects.mysql import DECIMAL, VARCHAR
 
 class User(Base):
 
@@ -13,14 +13,17 @@ class User(Base):
     password = Column(VARCHAR(30))
     name = Column(VARCHAR(30))
 
-    def __repr__(self):
+    def __repr__(self): # tostring
         return f'User(id={self.id}, userid={self.userid}, password={self.password}, name={self.name})'
 
 engine = create_engine('mysql+mysqlconnector://root:munnin00@127.0.0.1/mariadb?charset=utf8', encoding='utf8', echo=True)
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
-session.add(User(userid='tom', password='1', name='thomas'))
-query = session.query
+# session.add(User(userid='tom', password='1', name='thomas'))
+query = session.query(User).filter((User.userid == 'tom'))
+print(query)
+for i in query:
+    print(i)
 
 session.commit()
