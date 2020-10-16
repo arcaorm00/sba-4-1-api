@@ -14,7 +14,8 @@ class ArticleDto(db.Model):
     userid: str = db.Column(db.String(30), db.ForeignKey(UserDto.userid))
     item_id: int = db.Column(db.Integer, db.ForeignKey(ItemDto.id))
 
-    def __init__(self, title, content, userid, item_id):
+    def __init__(self, id, title, content, userid, item_id):
+        self.id = id
         self.title = title
         self.content = content
         self.userid = userid

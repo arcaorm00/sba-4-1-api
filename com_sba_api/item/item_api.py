@@ -11,8 +11,12 @@ class ItemApi(Resource):
 
     def get(self, name):
         item = self.dao.find_by_name(name)
-        
+
         if item:
             return item.json()
 
         return {'message': 'Item not found'}, 404
+
+class Items(Resource):
+    def get(self):
+        return {'items': list(map(lambda item: item.json(), ItemDao.find_all()))}
