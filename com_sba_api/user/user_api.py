@@ -10,10 +10,10 @@ class UserApi(Resource):
         self.dao = UserDao
 
     def get(self, name):
-        item = self.dao.find_by_name(name)
+        user = self.dao.find_by_name(name)
         
-        if item:
-            return item.json()
+        if user:
+            return user.json()
 
         return {'message': 'Item not found'}, 404
 
