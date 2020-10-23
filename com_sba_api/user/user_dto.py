@@ -3,16 +3,16 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import create_engine
 from com_sba_api.user.service import UserService
 
-config = {
-    'user' : 'root',
-    'password' : 'root',
-    'host': '127.0.0.1',
-    'port' : '3306',
-    'database' : 'root'
-}
-charset = {'utf8':'utf8'}
-url = f"mysql+mysqlconnector://{config['user']}:{config['password']}@{config['host']}:{config['port']}/{config['database']}?charset=utf8"
-engine = create_engine(url)
+# config = {
+#     'user' : 'root',
+#     'password' : 'root',
+#     'host': '127.0.0.1',
+#     'port' : '3306',
+#     'database' : 'root'
+# }
+# charset = {'utf8':'utf8'}
+# url = f"mysql+mysqlconnector://{config['user']}:{config['password']}@{config['host']}:{config['port']}/{config['database']}?charset=utf8"
+# engine = create_engine(url)
 
 '''
 userid password                                               name  pclass  gender age_group  embarked  rank
@@ -71,20 +71,21 @@ class UserDto(db.Model):
             'rank' : self.rank
         }
 
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
+class UserVo:
+    userid: str = ''
+    password: str = ''
+    name: str = ''
+    pclass: int = 0
+    gender: int = 0
+    age_group: int = 0
+    embarked: int = 0
+    rank: int = 0
 
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-
-service = UserService()
-Session = sessionmaker(bind=engine)
-s = Session()
-df = service.hook()
-print(df.head())
-s.bulk_insert_mappings(UserDto, df.to_dict(orient="records"))
-s.commit()
-s.close()
+# service = UserService()
+# Session = sessionmaker(bind=engine)
+# s = Session()
+# df = service.hook()
+# print(df.head())
+# s.bulk_insert_mappings(UserDto, df.to_dict(orient="records"))
+# s.commit()
+# s.close()
