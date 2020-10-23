@@ -2,7 +2,7 @@ from flask_restful import Resource, reqparse
 from com_sba_api.board.article_dao import ArticleDao
 from com_sba_api.board.article_dto import ArticleDto
 
-class ArticlsApi(Resource):
+class ArticleApi(Resource):
 
     def __init__(self):
         parser = reqparse.RequestParser()

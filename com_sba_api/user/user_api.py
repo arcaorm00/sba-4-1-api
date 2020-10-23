@@ -11,9 +11,9 @@ parser.add_argument('password', type=str, required=True, help='This field should
 
 class UserApi(Resource):
 
-    def __init__(self):
-        parser = reqparse.RequestParser() # only allow price changes, no name changes allowed
-        self.dao = UserDao
+    # def __init__(self):
+    #     parser = reqparse.RequestParser() # only allow price changes, no name changes allowed
+    #     self.dao = UserDao
     
     @staticmethod
     def post():
@@ -78,6 +78,4 @@ class Access(Resource):
         print(user.userid)
         print(user.password)
         data = UserDao.login(user)
-        id = data.userid
-        print(f'>>>>>> {id}')
-        return json.dumps({'userid': data.userid, 'name': data.name}), 200
+        return data[0], 200
