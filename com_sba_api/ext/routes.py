@@ -4,6 +4,7 @@ from com_sba_api.board.article_api import ArticleApi, Articles
 from com_sba_api.home.home_api import Home
 
 def initialize_routes(api):
+    print('====== 2 ======')
     api.add_resource(Home, '/api')
     api.add_resource(ItemApi, '/api/item/<string:id>')
     api.add_resource(Items, '/api/items')

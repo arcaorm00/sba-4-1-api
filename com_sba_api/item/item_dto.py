@@ -9,7 +9,7 @@ class ItemDto(db.Model):
     name: str = db.Column(db.String(30))
     price: str = db.Column(db.String(30))
 
-    articles = db.relationship('ArticleModel', lazy='dynamic')
+    # articles = db.relationship('ArticleModel', lazy='dynamic')
 
     def __init__(self, id, name, price):
         self.id = id
@@ -30,3 +30,8 @@ class ItemDto(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+class ItemVo:
+    id: int = 0
+    name: str = ''
+    price: str = ''

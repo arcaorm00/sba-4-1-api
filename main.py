@@ -2,17 +2,18 @@ from flask import Flask
 from flask_restful import Api
 from com_sba_api.ext.db import url, db
 from com_sba_api.ext.routes import initialize_routes
-from com_sba_api.item.item_api import ItemApi, Items
-from com_sba_api.board.article_api import ArticlsApi, Articles
 from com_sba_api.user.user_api import UserApi, Users 
-from com_sba_api.user import user
+from com_sba_api.item.item_api import ItemApi, Items
+from com_sba_api.board.article_api import ArticleApi, Articles
+from com_sba_api.user import user 
+# python 파일을 특정하지 않고 디렉토리 이름을 참조하면 __init__.py를 찾는다.
 from flask_cors import CORS
 
+print('====== 1 ======')
 app = Flask(__name__)
 CORS(app)
 app.register_blueprint(user)
 
-print('====== url ======')
 print(url)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = url

@@ -59,7 +59,9 @@ class Users(Resource):
         u_dao.insert_many('users')
 
     def get(self):
-        return {'user': list(map(lambda user: user.json(), UserDao.find_all()))}
+        print('======== 10 ========')
+        data = UserDao.find_all()
+        return data, 200
 
 class Auth(Resource):
     def post(self):
@@ -70,7 +72,9 @@ class Auth(Resource):
         return {'id': str(id)}, 200
     
 class Access(Resource):
+
     def post(self):
+        print('====== 5 ======')
         args = parser.parse_args()
         user = UserVo()
         user.userid = args.userid
