@@ -1,7 +1,8 @@
-from com_sba_api.item.item_api import ItemApi, Items
-from com_sba_api.user.user_api import UserApi, Users, Auth, Access
-from com_sba_api.board.article_api import ArticleApi, Articles
-from com_sba_api.home.home_api import Home
+from com_sba_api.resources.item import ItemApi, Items
+from com_sba_api.resources.user import UserApi, Users, Auth, Access
+from com_sba_api.resources.article import ArticleApi, Articles
+from com_sba_api.resources.home import Home
+from com_sba_api.resources.cabbage import Cabbage
 
 def initialize_routes(api):
     print('====== 2 ======')
@@ -14,3 +15,4 @@ def initialize_routes(api):
     api.add_resource(Access, '/api/access')
     api.add_resource(ArticleApi, '/api/article/<string:id>')
     api.add_resource(Articles, '/api/articles')
+    api.add_resource(Articles, '/api/cabbage')
