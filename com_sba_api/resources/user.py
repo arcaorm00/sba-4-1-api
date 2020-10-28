@@ -7,7 +7,7 @@ from com_sba_api.ext.db import db, openSession
 import pandas as pd
 import json
 import os
-from com_sba_api.util.file import FileReader
+from com_sba_api.utils.file_helper import FileReader
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier # rforest
@@ -45,7 +45,7 @@ Embarked : a Port Name on Board C = Cherbourg, Q = Queenstown, S = Southhampton
 # ====================                     =====================
 # ==============================================================
 
-class UserPreprocess(object):
+class UserPreprocess(object): # 객체지향의 object는 아직 역할이 정해지지 않은 객체
     def __init__(self):
         self.fileReader = FileReader()  
         self.data = os.path.join(os.path.abspath(os.path.dirname(__file__))+'\\data')
@@ -371,7 +371,7 @@ userid password                                               name  pclass  gend
 890     891        1                                Dooley, Mr. Patrick       3       0         5         3     1
 [891 rows x 8 columns]
 '''
-class UserDto(db.Model):
+class UserDto(db.Model): # object가 Model로 사용 (ext의 db 사용)
 
     __tablename__ = 'users'
     __table_args__={'mysql_collate':'utf8_general_ci'}
@@ -384,6 +384,11 @@ class UserDto(db.Model):
     age_group: int = db.Column(db.Integer)
     embarked: int = db.Column(db.Integer)
     rank: int = db.Column(db.Integer)
+
+    orders = db.relationship('OrderDto', back_populates='user', lazy='dynamic')
+    prices = db.relationship('PriceDto', back_populates='user', lazy='dynamic')
+    articles = db.relationship('ArticleDto', back_populates='user', lazy='dynamic')
+    # lazy = 'dynamic': 시작과 동시에 램을 점유하지 않고 필요할 때 점유한다.
 
     def __init__(self, userid, password, name, pclass, gender, age_group, embarked, rank):
         self.userid = userid
@@ -427,55 +432,29 @@ class UserVo:
 
 
 
-
-
-from com_sba_api.ext.db import db, openSession
-from com_sba_api.user.user_dto import UserDto
-from com_sba_api.user.service import UserService
-import pandas as pd
-import json
+Session = openSession()
+session = Session()
+use_preprocess = UserPreprocess()
 
 class UserDao(UserDto):
 
-    @classmethod
-    def find_all(cls):
-        sql = cls.query
-        df = pd.read_sql(sql.statement, sql.session.bind)
-        return json.loads(df.to_json(orient='records'))
+    @staticmethod
+    def bulk():
+        df = use_preprocess.hook()
+        print(df.head())
+        session.bulk_insert_mappings(UserDto, df.to_dict(orient='records'))
+        session.commit()
+        session.close()
 
-    @classmethod
-    def find_by_name(cls, name):
-        return cls.query.filter_by(name == name).all()
+    @staticmethod
+    def count():
+        return session.query(func.count(UserDto.userid)).one()
 
-    @classmethod
-    def find_by_id(cls, userid):
-        return cls.query.filter_by(userid == userid).first()
-
-    @classmethod
-    def login(cls, user):
-        sql = cls.query.filter(cls.userid.like(user.userid))\
-            .filter(cls.password.like(user.password))
-        df = pd.read_sql(sql.statement, sql.session.bind)
-        print('=======================================')
-        print(json.loads(df.to_json(orient='records')))
-        return json.loads(df.to_json(orient='records'))
-    
     @staticmethod
     def save(user):
         db.session.add(user)
         db.session.commit()
-    
-    @staticmethod
-    def insert_many():
-        service = UserService()
-        Session = openSession()
-        session = Session()
-        df = service.hook()
-        print(df.head())
-        session.bulk_insert_mappings(UserDto, df.to_dict(orient="records"))
-        session.commit()
-        session.close()
-    
+     
     @staticmethod
     def modify_user(user):
         db.session.add(user)
@@ -487,6 +466,61 @@ class UserDao(UserDto):
         db.session.delete(data)
         db.session.commit()
 
+    @classmethod
+    def find_all(cls):
+        sql = cls.query
+        df = pd.read_sql(sql.statement, sql.session.bind)
+        return json.loads(df.to_json(orient='records'))
+
+    '''
+    SELECT *
+    FROM users
+    WHERE user_name LIKE 'name'
+    '''
+    # the meaning of the symbol %
+    # A% ==> Apple
+    # %A ==> NA
+    # %A% ==> Apple, NA, BAG 
+    @classmethod
+    def find_by_name(cls, name):
+        return session.query(UserDto).filter(UserDto.name.like(f'%{name}%'))
+
+    '''
+    SELECT *
+    FROM users
+    WHERE userid LIKE 'a'
+    '''
+    @classmethod
+    def find_by_id(cls, userid):
+        return session.query(UserDto).filter(UserDto.userid.like(userid))
+
+    '''
+    SELECT *
+    FROM users
+    WHERE gender LIKE 'gender' AND name LIKE 'name%'
+    '''
+    # Please enter this at the top. 
+    # from sqlalchemy import and_
+    @classmethod
+    def find_users_by_gender_and_name(cls, gender, name):
+        return session.query(UserDto).filter(and_(UserDto.gender.like(gender), UserDto.name.like(f'%{name}%')))
+
+    @classmethod
+    def find_users_by_gender_and_name(cls, gender, age_group):
+        return session.query(UserDto).filter(or_(UserDto.pclass.like(gender), UserDto.age_group.like(age_group)))
+
+    @classmethod
+    def login(cls, user):
+        sql = cls.query.filter(cls.userid.like(user.userid))\
+            .filter(cls.password.like(user.password))
+        df = pd.read_sql(sql.statement, sql.session.bind)
+        print('=======================================')
+        print(json.loads(df.to_json(orient='records')))
+        return json.loads(df.to_json(orient='records'))
+
+if __name__ == "__main__":
+    UserDao.bulk()
+
 
 
 
@@ -495,6 +529,84 @@ class UserDao(UserDto):
 
 # =====================================================================
 # =====================================================================
-# =============================== model ===============================
+# ============================ resourcing =============================
 # =====================================================================
 # =====================================================================
+
+
+
+
+
+parser = reqparse.RequestParser()
+parser.add_argument('userid', type=str, required=True, help='This field should be a userid')
+parser.add_argument('password', type=str, required=True, help='This field should be a password')
+
+class User(Resourse):# object가 Resource로 사용 (ext의 route 사용)
+    @staticmethod
+    def post():
+        args = parser.parse_args()
+        print(f'User {args["id"]} added')
+        params = json.loads(request.get_data(), encoding='utf-8')
+        if len(params) == 0:
+            return 'No parameter'
+
+        params_str = ''
+        for key in params.key():
+            params_str += 'key: {}, value: {}\n'.format(key, params[key])
+        return {'code': 0, 'message': 'SUCCESS'}, 200
+
+    @staticmethod
+    def get(id: str):
+        print(f'User {id} added')
+
+        try:
+            user = UserDao.find_by_id(id)
+            if user:
+                return user.json()
+        except Exception as e:
+            return {'message': 'Item not found'}, 404
+    
+    @staticmethod
+    def update():
+        args = parser.parse_args()
+        print(f'User {args["id"]} updated')
+        return {'code': 0, 'message': 'SUCCESS'}
+    
+    @staticmethod
+    def delete():
+        args = parser.parse_args()
+        print(f'User {args["id"]} deleted')
+        return {'code': 0, 'message': 'SUCCESS'}, 200
+    
+
+class Users(Resource):
+
+    def post(self):
+        u_dao = UserDao()
+        u_dao.bulk('users')
+
+    def get(self):
+        print('======== 10 ========')
+        data = UserDao.find_all()
+        return data, 200
+
+class Auth(Resource):
+    def post(self):
+        body = request.get_json()
+        user = UserDto(**body)
+        UserDao.save(user)
+        id = user.userid
+        return {'id': str(id)}, 200
+    
+class Access(Resource):
+
+    def post(self):
+        print('====== 5 ======')
+        args = parser.parse_args()
+        user = UserVo()
+        user.userid = args.userid
+        user.password = args.password
+        print(user.userid)
+        print(user.password)
+        data = UserDao.login(user)
+        return data[0], 200
